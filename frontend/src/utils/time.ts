@@ -1,0 +1,5 @@
+export const formatIST = (value: string | Date, withDate = false) => new Intl.DateTimeFormat('en-IN', {
+  timeZone: 'Asia/Kolkata',
+  ...(withDate ? { day: '2-digit', month: 'short', year: 'numeric' } : {}),
+  hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false,
+}).format(new Date(value)).replace(',', '') + ' IST';

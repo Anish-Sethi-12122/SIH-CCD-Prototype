@@ -1,0 +1,164 @@
+@import "tailwindcss";
+
+@theme {
+  /* Command-center dark palette - Restrained and professional */
+  --color-surface-900: #0a0d14;
+  --color-surface-800: #11151c;
+  --color-surface-700: #1a202c;
+  --color-surface-600: #252d3a;
+  --color-surface-500: #333d4b;
+
+  --color-accent: #00d4ff; /* Drastically reduced usage */
+  --color-accent-dim: #0099bb;
+
+  /* Semantic Alerts */
+  --color-alert-critical: #ef4444; /* Red */
+  --color-alert-warning: #f59e0b;  /* Amber */
+  --color-alert-info: #3b82f6;     /* Blue */
+
+  /* Semantic Tracks */
+  --color-track-normal: #65a30d;   /* Subdued Green */
+  --color-track-vehicle: #f59e0b;  /* Amber */
+  --color-track-alerted: #ef4444;  /* Red */
+
+  --font-family-mono: 'JetBrains Mono', 'Fira Mono', monospace;
+  --font-family-sans: 'Inter', system-ui, sans-serif;
+
+  --animate-blink: blink 1.2s step-end infinite;
+  --animate-slide-in-right: slideInRight 0.3s ease-out;
+  --animate-fade-in: fadeIn 0.2s ease-out;
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+  @keyframes slideInRight {
+    0% { transform: translateX(100%); opacity: 0; }
+    100% { transform: translateX(0); opacity: 1; }
+  }
+  @keyframes fadeIn {
+    0% { opacity: 0; transform: translateY(-4px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+  body {
+    background-color: var(--color-surface-900);
+    color: white;
+    font-family: var(--font-family-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  * {
+    box-sizing: border-box;
+  }
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--color-surface-800);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-surface-500);
+    border-radius: 9999px;
+  }
+}
+
+@layer components {
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.65rem;
+    font-family: var(--font-family-mono);
+    font-weight: 500;
+  }
+  .badge-critical {
+    background: color-mix(in srgb, var(--color-alert-critical) 20%, transparent);
+    color: var(--color-alert-critical);
+    border: 1px solid color-mix(in srgb, var(--color-alert-critical) 40%, transparent);
+  }
+  .badge-warning {
+    background: color-mix(in srgb, var(--color-alert-warning) 20%, transparent);
+    color: var(--color-alert-warning);
+    border: 1px solid color-mix(in srgb, var(--color-alert-warning) 40%, transparent);
+  }
+  .badge-info {
+    background: color-mix(in srgb, var(--color-alert-info) 20%, transparent);
+    color: var(--color-alert-info);
+    border: 1px solid color-mix(in srgb, var(--color-alert-info) 40%, transparent);
+  }
+  .badge-success {
+    background: color-mix(in srgb, var(--color-track-human) 20%, transparent);
+    color: var(--color-track-human);
+    border: 1px solid color-mix(in srgb, var(--color-track-human) 40%, transparent);
+  }
+  .panel {
+    background-color: var(--color-surface-800);
+    border: 1px solid var(--color-surface-600);
+    border-radius: 8px;
+  }
+  .panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--color-surface-600);
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 150ms;
+    cursor: pointer;
+    border: none;
+    outline: none;
+  }
+  .btn-primary {
+    background-color: var(--color-accent);
+    color: var(--color-surface-900);
+  }
+  .btn-primary:hover {
+    background-color: var(--color-accent-dim);
+  }
+  .btn-ghost {
+    color: #9ca3af;
+    background: transparent;
+  }
+  .btn-ghost:hover {
+    color: white;
+    background-color: var(--color-surface-700);
+  }
+  .btn-danger {
+    background: color-mix(in srgb, var(--color-alert-critical) 20%, transparent);
+    color: var(--color-alert-critical);
+    border: 1px solid color-mix(in srgb, var(--color-alert-critical) 40%, transparent);
+  }
+  .btn-danger:hover {
+    background-color: var(--color-alert-critical);
+    color: white;
+  }
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+  .scanline {
+    background: repeating-linear-gradient(
+      0deg,
+      rgba(0,0,0,0.03) 0px,
+      rgba(0,0,0,0.03) 1px,
+      transparent 1px,
+      transparent 2px
+    );
+  }
+}

@@ -1,0 +1,42 @@
+# Python environments, caches, and test artefacts
+backend/.venv/
+**/__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Local configuration and logs
+.env
+.env.*
+!.env.example
+*.log
+backend/.backend*.log
+backend/.pip-install.log
+
+# Local runtime state and operator data
+data/*.db
+data/*.db-*
+backend/data/*.db
+backend/data/*.db-*
+
+# Large local media and downloaded model artefacts
+data/videos/*
+!data/videos/.gitkeep
+*.pt
+*.onnx
+*.engine
+
+# Frontend dependencies and build output
+frontend/node_modules/
+frontend/dist/
+
+# Editor and operating-system files
+.vscode/
+.idea/
+*.code-workspace
+.DS_Store
+Thumbs.db
+desktop.ini
