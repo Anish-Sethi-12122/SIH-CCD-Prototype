@@ -191,4 +191,4 @@ Key settings in `backend/app/core/config.py`:
 
 ---
 
-*Prototype built for SIH 2024 internal round. Not for production deployment.*
+*Prototype built for SIH 2026 internal round. Not for production deployment.*
