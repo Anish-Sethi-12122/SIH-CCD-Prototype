@@ -61,6 +61,7 @@ const AlertRow = ({ alert, onSelect }: { alert: Alert; onSelect: (a: Alert) => v
       <div className="text-xs text-gray-200 font-bold truncate">
         {alert.title}
       </div>
+      {alert.rule_id && <div className="text-[10px] font-mono text-alert-warning truncate">{alert.rule_id}: {alert.rule_reason || alert.message}</div>}
       
       <div className="flex justify-between items-center text-[10px] font-mono text-gray-400 mt-0.5">
         <span className="truncate pr-2">{alert.camera_code || 'CAMERA'}</span>

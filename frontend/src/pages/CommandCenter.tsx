@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { VideoFeed } from '../components/VideoFeed';
 import { AlertPanel } from '../components/AlertPanel';
 import { AlertDetail } from '../components/AlertDetail';
-import { TrackDetail } from '../components/TrackDetail';
 import { PlaybackControls } from '../components/PlaybackControls';
 import { ZoneManager } from '../components/ZoneManager';
 import { useSurveillanceStore } from '../store';
@@ -53,9 +52,6 @@ export const CommandCenter: React.FC = () => {
           </div>
         </div>
       </div>
-
-      {/* Track detail popup */}
-      <TrackDetail />
 
       {/* Alert detail drawer */}
       {selectedAlert && (

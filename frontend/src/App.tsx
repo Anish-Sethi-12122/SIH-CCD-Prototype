@@ -11,6 +11,7 @@ import { DebugPanel } from './components/DebugPanel';
 import { useWebSocket } from './hooks/useWebSocket';
 import { useSurveillanceStore } from './store';
 import { StartupScreen } from './components/StartupScreen';
+import { TrackDetail } from './components/TrackDetail';
 
 function AppInner() {
   const [sessionStarted, setSessionStarted] = useState(false);
@@ -38,6 +39,7 @@ function AppInner() {
             <Route path="/vehicles" element={<Vehicles />} />
             <Route path="/config" element={<Config />} />
           </Routes>
+          <TrackDetail />
         </main>
       </div>
       <DebugPanel />

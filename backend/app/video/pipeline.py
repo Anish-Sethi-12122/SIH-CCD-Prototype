@@ -57,6 +57,7 @@ class VideoPipeline:
         self._zone_entered_at: dict[tuple[int, str], float] = {}
         self._entry_history: dict[tuple[int, str], list[float]] = {}
         self._rule_fired: set[tuple[str, int, str]] = set()
+        self._entity_alerted_uids: set[str] = set()
 
         # Active zones (polygon, id)
         self._zones: list[dict] = []  # [{id, name, polygon[[x,y]normalized]},...]
@@ -150,6 +151,7 @@ class VideoPipeline:
         self._zone_entered_at = {}
         self._entry_history = {}
         self._rule_fired = set()
+        self._entity_alerted_uids = set()
         self._zones = []
         self.frame_count = 0
         self.current_frame = 0
@@ -294,6 +296,7 @@ class VideoPipeline:
                 self._inference_durations_ms.append((time.perf_counter() - inference_started) * 1000)
 
             tracked_objects = self._update_track_states(detections, inference_ran)
+            entity_events = self._new_entity_events(tracked_objects) if inference_ran else []
 
             # Intrusion check
             intrusion_events = []
@@ -364,6 +367,8 @@ class VideoPipeline:
 
             for ev in intrusion_events:
                 self._publish({"type": "intrusion_event", "payload": ev}, generation)
+            for ev in entity_events:
+                self._publish({"type": "entity_detected", "payload": ev}, generation)
 
             # An EXITED state is a one-update signal to the frontend.  The next
             # update omits it after the UI has been told to remove the box.
@@ -386,8 +391,17 @@ class VideoPipeline:
         for detection in detections:
             track_id = detection["track_id"]
             seen_ids.add(track_id)
+            previous = self._track_registry.get(track_id)
+            # ByteTrack numbers are internal. If a number changes object type,
+            # it cannot retain the prior human/vehicle operator UID.
+            if previous and previous["object_type"] != detection["object_type"]:
+                exited = dict(previous)
+                exited["state"] = "exited"
+                self._pending_exits.append(exited)
             track = dict(detection)
-            track["track_uid"] = self._track_uids.get(track_id) or self._new_track_uid(track["object_type"])
+            expected_prefix = "H-" if track["object_type"] == "human" else "V-"
+            previous_uid = self._track_uids.get(track_id)
+            track["track_uid"] = previous_uid if previous_uid and previous_uid.startswith(expected_prefix) else self._new_track_uid(track["object_type"])
             self._track_uids[track_id] = track["track_uid"]
             track["state"] = "active"
             track["missed_updates"] = 0
@@ -415,6 +429,25 @@ class VideoPipeline:
             return f"H-{self._human_uid_sequence:04d}"
         self._vehicle_uid_sequence += 1
         return f"V-{self._vehicle_uid_sequence:04d}"
+
+    def _new_entity_events(self, tracked_objects: list[dict]) -> list[dict]:
+        """Emit one medium-severity review alert for each new operator track."""
+        events = []
+        for obj in tracked_objects:
+            if obj.get("state") != "active" or obj["track_uid"] in self._entity_alerted_uids:
+                continue
+            self._entity_alerted_uids.add(obj["track_uid"])
+            events.append({
+                "intrusion_id": uuid.uuid4().hex,
+                "event_type": "entity_detected",
+                "severity": "medium",
+                "track_id": obj["track_id"], "track_uid": obj["track_uid"],
+                "object_type": obj["object_type"], "camera_id": self.camera_id,
+                "camera_code": self.camera_code, "session_id": self.session_id,
+                "confidence": obj["confidence"], "timestamp": datetime.utcnow().isoformat(),
+                "enrichment_state": "NO_MATCH" if obj["object_type"] == "human" else "UNAVAILABLE",
+            })
+        return events
 
     def _check_intrusions(self, tracked_objects: list[dict]) -> list[dict]:
         events = []

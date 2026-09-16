@@ -37,13 +37,15 @@ async def persist_intrusion(payload: dict) -> None:
             confidence = payload.get("confidence", 1.0)
 
             is_suspicious = event_type == "suspicious_activity"
+            is_entity_detection = event_type == "entity_detected"
             reason = payload.get("reason", "Restricted-zone activity")
             event, alert = await create_event_and_alert(
                 db=db,
                 event_type=event_type,
                 severity=payload.get("severity", "critical"),
-                title="Suspicious Activity" if is_suspicious else "⚠ Zone Intrusion Detected",
-                message=(f"{object_type.upper()} · {payload.get('track_uid', f'T-{track_id}')} — {reason}"
+                title="Entity Detected" if is_entity_detection else ("Suspicious Activity" if is_suspicious else "⚠ Zone Intrusion Detected"),
+                message=(f"{object_type.upper()} · {payload.get('track_uid', f'T-{track_id}')} — review required"
+                         if is_entity_detection else f"{object_type.upper()} · {payload.get('track_uid', f'T-{track_id}')} — {reason}"
                          if is_suspicious else
                          f"{object_type.upper()} · {payload.get('track_uid', f'T-{track_id}')} entered restricted zone '{payload.get('zone_name', zone_id)}'"),
                 camera_id=camera_id,
@@ -62,6 +64,9 @@ async def persist_intrusion(payload: dict) -> None:
             "payload": {
                 "id": alert.id,
                 "event_id": event.id,
+                "event_type": alert.event_type,
+                "rule_id": alert.rule_id,
+                "rule_reason": alert.rule_reason,
                 "title": alert.title,
                 "message": alert.message,
                 "severity": alert.severity,
@@ -74,6 +79,7 @@ async def persist_intrusion(payload: dict) -> None:
                 "zone_id": alert.zone_id,
                 "status": alert.status,
                 "operator_note": alert.operator_note,
+                "operator_correction": alert.operator_correction,
                 "created_at": alert.created_at.isoformat(),
                 "acknowledged_at": None,
             },
@@ -88,7 +94,7 @@ async def consume_intrusions() -> None:
     try:
         while True:
             message = await queue.get()
-            if message.get("type") in {"intrusion_event", "suspicious_activity"}:
+            if message.get("type") in {"intrusion_event", "suspicious_activity", "entity_detected"}:
                 await persist_intrusion(message["payload"])
     except asyncio.CancelledError:
         raise

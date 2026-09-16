@@ -87,7 +87,7 @@ export const Notifications: React.FC = () => {
                     </span>
                   </td>
                   <td className="py-2 px-2 font-bold text-gray-200">
-                    {alert.title}
+                    {alert.title}{alert.rule_id && <div className="mt-0.5 text-[10px] font-mono font-normal text-alert-warning">{alert.rule_id}: {alert.rule_reason || 'Suspicious activity'}</div>}
                   </td>
                   <td className="py-2 px-2 font-mono text-gray-400 text-[10px]">
                     {alert.camera_code || '—'}

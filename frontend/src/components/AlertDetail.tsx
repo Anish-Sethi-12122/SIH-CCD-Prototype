@@ -16,6 +16,7 @@ export const AlertDetail: React.FC<Props> = ({ alert, onClose }) => {
   const [loading, setLoading] = useState(false);
   const [note, setNote] = useState(alert.operator_note ?? '');
   const [showCorrection, setShowCorrection] = useState(false);
+  const [correctionMode, setCorrectionMode] = useState<'false_positive' | 'operator_provided'>('false_positive');
   const [correction, setCorrection] = useState<Record<string, string>>({});
   const [correctionSaved, setCorrectionSaved] = useState(Boolean(alert.operator_correction));
 
@@ -32,12 +33,20 @@ export const AlertDetail: React.FC<Props> = ({ alert, onClose }) => {
   const saveCorrection = async () => {
     setLoading(true);
     try {
-      await api.alertFeedback(alert.id, 'false_positive', note || undefined, correction);
-      updateAlertStatus(alert.id, 'false_positive', note || undefined);
+      await api.alertFeedback(alert.id, correctionMode, note || undefined, correction);
+      updateAlertStatus(alert.id, correctionMode, note || undefined);
       setCorrectionSaved(true);
       setShowCorrection(false);
     } finally { setLoading(false); }
   };
+
+  const saveNote = async () => {
+    setLoading(true);
+    try { await api.alertFeedback(alert.id, alert.status, note || undefined); updateAlertStatus(alert.id, alert.status, note || undefined); }
+    finally { setLoading(false); }
+  };
+
+  const unavailableEnrichment = alert.event_type === 'entity_detected';
 
   const handleCopy = () => {
     const payload = JSON.stringify(alert, null, 2);
@@ -49,6 +58,7 @@ export const AlertDetail: React.FC<Props> = ({ alert, onClose }) => {
   const severityColor = {
     critical: 'text-alert-critical border-alert-critical/30 bg-alert-critical/10',
     warning: 'text-alert-warning border-alert-warning/30 bg-alert-warning/10',
+    medium: 'text-alert-warning border-alert-warning/30 bg-alert-warning/10',
     info: 'text-alert-info border-alert-info/30 bg-alert-info/10',
   }[alert.severity] ?? '';
 
@@ -78,6 +88,7 @@ export const AlertDetail: React.FC<Props> = ({ alert, onClose }) => {
         <div className="space-y-2">
           <Field label="Camera" value={alert.camera_code ?? 'N/A'} mono />
           <Field label="Track" value={alert.track_uid ?? 'N/A'} mono />
+          {alert.rule_id && <><Field label="Rule" value={alert.rule_id} mono /><Field label="Activity" value={alert.rule_reason || 'Suspicious activity'} /></>}
           {alert.zone_id && <Field label="Zone" value="Restricted Zone" />}
           <Field label="Time" value={formatIST(alert.created_at, true)} mono />
           <Field label="Status" value={alert.status.toUpperCase().replace('_', ' ')} />
@@ -90,38 +101,19 @@ export const AlertDetail: React.FC<Props> = ({ alert, onClose }) => {
         {/* Operator note */}
         <div>
           <label className="text-[10px] font-mono text-gray-500 mb-1 block">OPERATOR NOTE</label>
-          <textarea
-            value={note}
-            onChange={e => setNote(e.target.value)}
-            placeholder="Add operator note..."
-            rows={2}
-            className="w-full bg-surface-700 border border-surface-600 rounded px-2 py-1.5 text-xs text-gray-300 resize-none focus:outline-none focus:border-accent/50"
-          />
+          <div className="flex gap-2"><textarea value={note} onChange={e => setNote(e.target.value)} placeholder="Add operator note..." rows={2} className="flex-1 bg-surface-700 border border-surface-600 rounded px-2 py-1.5 text-xs text-gray-300 resize-none focus:outline-none focus:border-accent/50" />
+            <div className="flex flex-col gap-1"><button aria-label="Save operator note" disabled={loading} onClick={saveNote} className="p-1 text-track-human hover:bg-track-human/10 rounded"><Check className="w-4 h-4" /></button><button aria-label="Discard operator note" disabled={loading} onClick={() => setNote(alert.operator_note ?? '')} className="p-1 text-gray-400 hover:bg-surface-700 rounded"><X className="w-4 h-4" /></button></div>
+          </div>
         </div>
 
         {/* Actions */}
         <div className="space-y-2">
           <div className="text-[10px] font-mono text-gray-500">OPERATOR ACTIONS</div>
-          <div className="flex gap-2">
-            <button
-              disabled={loading || alert.status === 'acknowledged'}
-              onClick={() => handleFeedback('acknowledged')}
-              className="flex-1 btn bg-track-human/20 text-track-human border border-track-human/40 hover:bg-track-human/30 disabled:opacity-40 text-xs"
-            >
-              <Check className="w-3 h-3" /> Acknowledge
-            </button>
-            <button
-              disabled={loading}
-              onClick={() => setShowCorrection(true)}
-              className="flex-1 btn-ghost text-xs border border-surface-600 disabled:opacity-40"
-            >
-              Mark False +
-            </button>
-          </div>
+          {unavailableEnrichment ? <div className="flex gap-2"><button disabled={loading} onClick={() => { setCorrectionMode('operator_provided'); setShowCorrection(true); }} className="flex-1 btn bg-track-human/20 text-track-human border border-track-human/40 text-xs">Manual Entry</button><button disabled title="Retry is reserved for a future enrichment retry pipeline" className="flex-1 btn-ghost text-xs border border-surface-600 opacity-50">Retry</button></div> : <div className="flex gap-2"><button disabled={loading || alert.status === 'acknowledged'} onClick={() => handleFeedback('acknowledged')} className="flex-1 btn bg-track-human/20 text-track-human border border-track-human/40 hover:bg-track-human/30 disabled:opacity-40 text-xs"><Check className="w-3 h-3" /> Acknowledge</button><button disabled={loading} onClick={() => { setCorrectionMode('false_positive'); setShowCorrection(true); }} className="flex-1 btn-ghost text-xs border border-surface-600 disabled:opacity-40">Mark False +</button></div>}
           {correctionSaved && <div className="text-[10px] font-mono text-track-human">OPERATOR PROVIDED</div>}
           {showCorrection && (
             <div className="border border-surface-600 p-3 space-y-2">
-              <div className="text-[10px] font-mono text-gray-500">OPERATOR CORRECTION · FALSE POSITIVE</div>
+              <div className="text-[10px] font-mono text-gray-500">{correctionMode === 'operator_provided' ? 'OPERATOR MANUAL ENTRY' : 'OPERATOR CORRECTION · FALSE POSITIVE'}</div>
               {(alert.object_type === 'human' ? [['name', 'Name'], ['age', 'Age'], ['reference_id', 'Reference / ID']] : [['license_plate', 'License Plate'], ['owner_name', 'Owner Name'], ['vehicle_type', 'Vehicle Type']]).map(([key, label]) => (
                 <input key={key} aria-label={label} value={correction[key] || ''} onChange={e => setCorrection({...correction, [key]: e.target.value})} placeholder={label} className="w-full bg-surface-700 border border-surface-600 px-2 py-1.5 text-xs focus:outline-none focus:border-accent/50" />
               ))}

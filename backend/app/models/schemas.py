@@ -69,6 +69,9 @@ class AlertSchema(BaseModel):
     internal_id: str
     session_id: str | None
     event_id: str
+    event_type: str | None = None
+    rule_id: str | None = None
+    rule_reason: str | None = None
     title: str
     message: str
     severity: str

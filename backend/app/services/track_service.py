@@ -28,6 +28,7 @@ async def sync_tracks(
             Track.session_id == session_id,
             Track.camera_id == camera_id,
             Track.track_id == observed["track_id"],
+            Track.object_type == observed["object_type"],
         ))
         record = result.scalar_one_or_none()
         status = _status_for(observed, alerted)

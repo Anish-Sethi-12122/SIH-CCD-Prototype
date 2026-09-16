@@ -34,6 +34,9 @@ async def init_db() -> None:
         await conn.exec_driver_sql("ALTER TABLE tracks ADD COLUMN anpr_state VARCHAR DEFAULT 'UNAVAILABLE'") if not await _has_column(conn, "tracks", "anpr_state") else None
         await conn.exec_driver_sql("ALTER TABLE tracks ADD COLUMN anpr_reason VARCHAR") if not await _has_column(conn, "tracks", "anpr_reason") else None
         await conn.exec_driver_sql("ALTER TABLE alerts ADD COLUMN operator_correction_json TEXT") if not await _has_column(conn, "alerts", "operator_correction_json") else None
+        await conn.exec_driver_sql("ALTER TABLE alerts ADD COLUMN event_type VARCHAR") if not await _has_column(conn, "alerts", "event_type") else None
+        await conn.exec_driver_sql("ALTER TABLE alerts ADD COLUMN rule_id VARCHAR") if not await _has_column(conn, "alerts", "rule_id") else None
+        await conn.exec_driver_sql("ALTER TABLE alerts ADD COLUMN rule_reason VARCHAR") if not await _has_column(conn, "alerts", "rule_reason") else None
     logger.info("Database initialized")
 
 

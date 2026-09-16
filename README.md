@@ -91,6 +91,7 @@ backend remains idle until this action creates a fresh demo session.
 | Vehicle ANPR | `UNAVAILABLE` when no plate OCR result is available; no plate is fabricated |
 | Operator correction | Operator-provided data, persisted separately from the machine observation |
 | Suspicious activity | Rule-based operational hypothesis, not behavioural ML or proof of intent |
+| Enrichment retry | Not implemented; a disabled Retry control marks the future workflow |
 | External notifications | Not implemented |
 | Night vision | Visual filter only |
 
