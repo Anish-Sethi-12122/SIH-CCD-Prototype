@@ -9,6 +9,15 @@ export const VideoFeed: React.FC = () => {
   const { frameData, systemStatus, nightVisionEnabled, isDrawingZone } = useSurveillanceStore();
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerSize, setContainerSize] = React.useState({ w: 0, h: 0 });
+  const [dotCount, setDotCount] = useState(3);
+
+  React.useEffect(() => {
+    if (systemStatus.feed !== 'unavailable') return;
+    const interval = setInterval(() => {
+      setDotCount(prev => (prev >= 5 ? 3 : prev + 1));
+    }, 500);
+    return () => clearInterval(interval);
+  }, [systemStatus.feed]);
 
   React.useEffect(() => {
     if (!containerRef.current) return;
@@ -40,12 +49,11 @@ export const VideoFeed: React.FC = () => {
             {feedUnavailable ? 'CAMERA OFFLINE — ATTEMPTING RECOVERY' : 'WAITING FOR STREAM...'}
           </div>
           {feedUnavailable && (
-            <div className="mt-3 flex gap-1">
-              {[...Array(5)].map((_, i) => (
+            <div className="mt-3 flex gap-1 justify-center w-12">
+              {[...Array(dotCount)].map((_, i) => (
                 <div
                   key={i}
                   className="w-1.5 h-1.5 rounded-full bg-alert-critical"
-                  style={{ animation: `blink 1.2s ${i * 0.2}s infinite` }}
                 />
               ))}
             </div>

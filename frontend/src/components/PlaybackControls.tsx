@@ -89,7 +89,7 @@ export const PlaybackControls: React.FC = () => {
           className="text-[10px] text-gray-500 hover:text-alert-critical"
           title="Simulate Failure"
         >
-          SIM-FAIL
+          Simulate failure
         </button>
         <button
           onClick={() => act('recover', api.recoverCamera)}
